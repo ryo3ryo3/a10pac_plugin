@@ -75,7 +75,7 @@ int usleep(unsigned);
 
 #define CACHELINE_ALIGNED_ADDR(p) ((p) >> LOG2_CL)
 
-#define LPBK1_BUFFER_SIZE            MB(1)
+#define LPBK1_BUFFER_SIZE            (1200 * 1024) //MB(1)
 #define LPBK1_BUFFER_ALLOCATION_SIZE MB(2)
 #define LPBK1_DSM_SIZE               MB(2)
 #define CSR_SRC_ADDR                 0x0120
