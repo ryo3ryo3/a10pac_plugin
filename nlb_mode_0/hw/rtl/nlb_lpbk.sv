@@ -396,7 +396,7 @@ wire  [1:0]   w_wordstocknum;
 wire          w_wordstocken;
 wire          w_wordstock_empty = (r_wordstocknum[1:0] == 2'd0) ? 1'b1 : 1'b0;
 wire          w_wordstock_full  = (r_wordstocknum[1:0] == 2'd2) ? 1'b1 : 1'b0;
-wire          w_wordstock_almfull = ( (r_wordstocknum[1:0] == 2'd1) && (r_wwordcnt[6:0]==7'd55) && (r_wwordcnt[6:0]==7'd115) ) ? 1'b1 : 1'b0;
+wire          w_wordstock_almfull = ( (r_wordstocknum[1:0] == 2'd1) && (r_wwordcnt[6:0]==7'd55) || (r_wwordcnt[6:0]==7'd115) ) ? 1'b1 : 1'b0;
 reg           r_wordstock_almfull;
 wire          w_wen = ~w_wordstock_full  & ab2re_WrEn;
 wire          w_ren = ~w_wordstock_empty & re2ab_WrSent;
