@@ -394,11 +394,12 @@ wire          w_rlastword = ( (r_rwordcnt[6:0]==7'd0)  || (r_rwordcnt[6:0]==7'd6
 reg   [1:0]   r_wordstocknum;
 wire  [1:0]   w_wordstocknum;
 wire          w_wordstocken;
-wire          w_wordstock_empty = (r_wordstocknum[1:0] == 2'd0) ? 1'b1 : 1'b0;
-wire          w_wordstock_full  = (r_wordstocknum[1:0] == 2'd2) ? 1'b1 : 1'b0;
-wire          w_wordstock_almfull = ( (r_wordstocknum[1:0] == 2'd1) && ((r_wwordcnt[6:0]==7'd55) || (r_wwordcnt[6:0]==7'd115)) ) ? 1'b1 : 1'b0;
+wire          w_wordstock_empty   = (r_wordstocknum[1:0] == 2'd0) ? 1'b1 : 1'b0;
+wire          w_wordstock_full_p  = (r_wordstocknum[1:0] == 2'd1) ? ( (w_wlastword & w_wen) & ~(w_rlastword & w_ren) ) : 1'b0;
+reg           r_wordstock_full;
+wire          w_wordstock_almfull = ( (r_wordstocknum[1:0] == 2'd1) && ((r_wwordcnt[6:0]==7'd52) || (r_wwordcnt[6:0]==7'd112)) ) ? 1'b1 : 1'b0;
 reg           r_wordstock_almfull;
-wire          w_wen = ~w_wordstock_full  & ab2re_WrEn;
+wire          w_wen = ~r_wordstock_full & ab2re_WrEn;
 wire          w_ren = ~w_wordstock_empty & re2ab_WrSent;
 reg           r_lstwen_1z;
 
@@ -437,6 +438,13 @@ always @(posedge Clk_400) begin
     else if(w_rlastword & w_ren) r_wordstock_almfull <= 1'b0;
     else if(w_wordstock_almfull) r_wordstock_almfull <= 1'b1;
 end
+
+always @(posedge Clk_400) begin
+    if (~test_SoftReset)         r_wordstock_full <= 1'b0;
+    else if(w_rlastword & w_ren) r_wordstock_full <= 1'b0;
+    else if(w_wordstock_full_p)  r_wordstock_full <= 1'b1;
+end
+
 
 always @(posedge Clk_400) begin
     if (w_wen) r_lbuf[r_wwordcnt[6:0]][551:0] <= {ab2re_WrAddr[19:0], ab2re_WrTID[15:0], ab2re_WrFence, ab2re_WrLen[1:0], ab2re_WrSop, ab2re_WrDin[511:0]};
@@ -571,7 +579,7 @@ inst_arbiter (
        ab2re_WrDin,                    // [DATA_WIDTH -1:0]     arbiter:           Cache line data
        ab2re_WrFence,                  //                       arbiter:           write fence 
        ab2re_WrEn,                     //                       arbiter:           write enable
-       ~w_wordstock_full, //re2ab_WrSent,                   //                       arbiter:           write issued
+       ~r_wordstock_full, //re2ab_WrSent,                   //                       arbiter:           write issued
        r_wordstock_almfull,   //re2ab_WrAlmFull,                //                       arbiter:           write fifo almost full
        
        ab2re_RdAddr,                   // [ADDR_LMT-1:0]        arbiter:           Reads may yield to writes
